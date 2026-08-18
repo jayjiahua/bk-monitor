@@ -927,9 +927,10 @@ class ExplorerHandler:
         else:
             # 匹配可访问的目录
             for allowed_dir_file in allowed_dir_file_list:
-                # pattern样例：'^/data/'
-                dir_pattern = re.compile(r"^{}".format(allowed_dir_file["file_path"]))
-                if dir_pattern.match(request_file):
+                # 授权目录是字面路径而非正则，其中的 '.' '*' 等字符不能当作通配符，
+                # 否则授权 '/data/ai-npc-1.0/' 会连带放行 '/data/ai-npc-1X0/'，
+                # '.' 还能匹配到 '/'，使授权跨越目录边界放行 '/data/ai-npc-1/0/'
+                if request_file.startswith(allowed_dir_file["file_path"]):
                     return True
         return False
 
