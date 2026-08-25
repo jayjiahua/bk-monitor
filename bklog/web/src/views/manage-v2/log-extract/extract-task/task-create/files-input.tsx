@@ -24,7 +24,7 @@
  * IN THE SOFTWARE.
  */
 
-import { defineComponent, ref, computed, watch } from 'vue';
+import { defineComponent, ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 
 import useLocale from '@/hooks/use-locale';
 
@@ -50,6 +50,24 @@ export default defineComponent({
     const searchValue = ref(''); // 搜索框的值
 
     const selectDropdownRef = ref<any>(null);
+    const inputWrapRef = ref<HTMLElement | null>(null);
+    const dropdownWidth = ref(0);
+
+    // 下拉面板要和输入框同宽，而输入框在两栏布局里是弹性的，不能沿用固定像素
+    let inputResizeObserver: null | ResizeObserver = null;
+    onMounted(() => {
+      if (!inputWrapRef.value || typeof ResizeObserver === 'undefined') {
+        return;
+      }
+      inputResizeObserver = new ResizeObserver(entries => {
+        dropdownWidth.value = entries[0]?.contentRect.width ?? 0;
+      });
+      inputResizeObserver.observe(inputWrapRef.value);
+    });
+    onBeforeUnmount(() => {
+      inputResizeObserver?.disconnect();
+      inputResizeObserver = null;
+    });
 
     const availablePaths = computed(() => (props.strategies as ExtractStrategy[]).map(item => item.file_path));
 
@@ -110,21 +128,25 @@ export default defineComponent({
         scopedSlots={{
           // 默认插槽：输入框
           default: () => (
-            <bk-input
-              style='width: 669px'
-              class={isError.value ? 'is-error' : ''}
-              data-test-id='addNewExtraction_input_specifyFolder'
-              value={showValue.value}
-              onChange={val => {
-                showValue.value = val;
-                handleChange(val);
-              }}
-            />
+            <div
+              ref={inputWrapRef}
+              class='files-input-wrap'
+            >
+              <bk-input
+                class={isError.value ? 'is-error' : ''}
+                data-test-id='addNewExtraction_input_specifyFolder'
+                value={showValue.value}
+                onChange={val => {
+                  showValue.value = val;
+                  handleChange(val);
+                }}
+              />
+            </div>
           ),
           // 内容插槽：下拉选项列表
           content: () => (
             <div
-              style='width: 671px; height: 224px'
+              style={{ width: dropdownWidth.value ? `${dropdownWidth.value}px` : '100%', height: '224px' }}
               class='bk-select-dropdown-content'
             >
               {/* 搜索框 */}

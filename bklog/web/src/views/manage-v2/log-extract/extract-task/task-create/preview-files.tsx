@@ -418,61 +418,70 @@ export default defineComponent({
     // 主渲染函数
     return () => (
       <div class='preview-file-content'>
-        <div class='flex-box'>
+        <div class='preview-form'>
           {/* 预览地址选择框 */}
-          <span class='panel-label'>{t('预览地址')}：</span>
-          <bk-select
-            style='width: 190px; margin-right: 20px; background-color: #fff'
-            clearable={false}
-            data-test-id='addNewExtraction_div_selectPreviewAddress'
-            value={previewIp.value}
-            multiple
-            show-select-all
-            onChange={val => (previewIp.value = val)}
-          >
-            {props.ipSelectNewNameList.map((option: any) => (
-              <bk-option
-                id={option.selectID}
-                key={option.selectID}
-                name={option.name}
-              />
-            ))}
-          </bk-select>
+          <div class='form-item'>
+            <div class='form-label'>
+              {t('预览地址')}
+              <span class='required'>*</span>
+            </div>
+            <bk-select
+              clearable={false}
+              data-test-id='addNewExtraction_div_selectPreviewAddress'
+              value={previewIp.value}
+              multiple
+              show-select-all
+              onChange={val => (previewIp.value = val)}
+            >
+              {props.ipSelectNewNameList.map((option: any) => (
+                <bk-option
+                  id={option.selectID}
+                  key={option.selectID}
+                  name={option.name}
+                />
+              ))}
+            </bk-select>
+          </div>
           {/* 文件日期选择框 */}
-          <span style='font-size: 12px'>{t('文件日期')}：</span>
-          <FileDatePicker
-            timeRange={timeRange.value}
-            timeValue={timeValue.value}
-            {...{
-              on: {
-                'update:timeRange': (val: string) => (timeRange.value = val),
-                'update:timeValue': (val: string[]) => (timeValue.value = val),
-              },
-            }}
-          />
-          {/* 是否搜索子目录 */}
-          <bk-checkbox
-            style='margin-right: 20px'
-            data-test-id='addNewExtraction_div_isSearchSubdirectory'
-            value={isSearchChild.value}
-            {...{
-              on: {
-                change: (val: boolean) => (isSearchChild.value = val),
-              },
-            }}
-          >
-            {t('是否搜索子目录')}
-          </bk-checkbox>
-          <bk-button
-            data-test-id='addNewExtraction_button_searchFilterCondition'
-            disabled={!(props.ipList.length && props.fileOrPath)}
-            loading={isLoading.value}
-            size='small'
-            theme='primary'
-            onClick={() => getExplorerList({})}
-          >
-            {t('搜索')}
-          </bk-button>
+          <div class='form-item'>
+            <div class='form-label'>
+              {t('文件日期')}
+              <span class='required'>*</span>
+            </div>
+            <FileDatePicker
+              timeRange={timeRange.value}
+              timeValue={timeValue.value}
+              {...{
+                on: {
+                  'update:timeRange': (val: string) => (timeRange.value = val),
+                  'update:timeValue': (val: string[]) => (timeValue.value = val),
+                },
+              }}
+            />
+          </div>
+          <div class='form-operate'>
+            {/* 是否搜索子目录 */}
+            <bk-checkbox
+              data-test-id='addNewExtraction_div_isSearchSubdirectory'
+              value={isSearchChild.value}
+              {...{
+                on: {
+                  change: (val: boolean) => (isSearchChild.value = val),
+                },
+              }}
+            >
+              {t('是否搜索子目录')}
+            </bk-checkbox>
+            <bk-button
+              data-test-id='addNewExtraction_button_searchFilterCondition'
+              disabled={!(props.ipList.length && props.fileOrPath)}
+              loading={isLoading.value}
+              theme='primary'
+              onClick={() => getExplorerList({})}
+            >
+              {t('搜索')}
+            </bk-button>
+          </div>
         </div>
 
         {/* 表格标题 */}

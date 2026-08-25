@@ -116,6 +116,40 @@ export default defineComponent({
     // 未选主机时拿不到可提取目录策略，无法判断路径是否越权，此时不允许手动添加
     const isManualDisabled = computed(() => !availableStrategies.value.length);
 
+    // 提示条里展示的可提取范围，让用户在输入前就知道目录与文件类型的边界
+    const scopeItems = computed(() =>
+      availableStrategies.value.map(item => ({
+        path: item.file_path,
+        types: (item.file_type ?? []).join('、'),
+      })),
+    );
+
+    // 两个页签共用的范围提示条，末行按页签给出各自的操作说明
+    const renderScopeTips = (isSearchTab: boolean) => (
+      <div class='panel-tips'>
+        <i class='bklog-icon bklog-info-fill' />
+        <div class='tips-content'>
+          <div>
+            {t('允许提取范围')}：
+            {scopeItems.value.length
+              ? scopeItems.value.map((item, index) => (
+                  <span key={item.path}>
+                    {index > 0 ? '，' : ''}
+                    <span class='tips-scope'>{item.path}</span>
+                    {item.types ? `（${item.types}）` : `（${t('全部类型')}）`}
+                  </span>
+                ))
+              : t('请先选择文件来源主机')}
+          </div>
+          <div>
+            {isSearchTab
+              ? t('预览地址仅作为快速检索的样本，选出的路径最终会从所有已选主机提取')
+              : t('需输入完整的日志文件路径，添加后进入右侧已选预览')}
+          </div>
+        </div>
+      </div>
+    );
+
     // 手动输入路径添加到已选列表
     const handleAddManualPath = () => {
       const path = manualPath.value.trim();
@@ -519,28 +553,25 @@ export default defineComponent({
         {/* 选择日志文件 */}
         <div class='row-container'>
           <div class='title'>
-            {t('选择日志文件')}
+            {t('选择文件')}
             <span class='required'>*</span>
-            <span
-              class='bklog-icon bklog-info-fill'
-              v-bk-tooltips={`${t('以')}/${t('结尾查询指定目录下内容，否则默认查询该目录及其子目录下所有文件')}`}
-            />
           </div>
-          <div class='content log-file-selector'>
+          <div class='log-file-selector'>
             <div class='selector-main'>
+              <div class='selector-title'>{t('选择日志文件')}</div>
               <div class='selector-tab'>
                 <div
                   class={['tab-item', { 'is-active': fileSourceTab.value === 'search' }]}
                   onClick={() => (fileSourceTab.value = 'search')}
                 >
-                  <i class='bk-icon icon-search' />
+                  <i class='bk-icon icon-search tab-icon' />
                   <span>{t('从主机检索')}</span>
                 </div>
                 <div
                   class={['tab-item', { 'is-active': fileSourceTab.value === 'manual' }]}
                   onClick={() => (fileSourceTab.value = 'manual')}
                 >
-                  <i class='bk-icon icon-edit-line' />
+                  <i class='bk-icon icon-edit-line tab-icon' />
                   <span>{t('手动输入路径')}</span>
                 </div>
               </div>
@@ -550,16 +581,27 @@ export default defineComponent({
                 style={{ display: fileSourceTab.value === 'search' ? '' : 'none' }}
                 class='selector-panel'
               >
-                <FilesInput
-                  strategies={availableStrategies.value}
-                  value={fileOrPath.value}
-                  {...{
-                    on: {
-                      'update:value': (val: string) => (fileOrPath.value = val),
-                      'update:select': handleFilesSelect,
-                    },
-                  }}
-                />
+                {renderScopeTips(true)}
+                <div class='form-item'>
+                  <div class='form-label'>
+                    {t('目录或文件名')}
+                    <span class='required'>*</span>
+                    <span
+                      class='bklog-icon bklog-info-fill label-tips'
+                      v-bk-tooltips={`${t('以')}/${t('结尾查询指定目录下内容，否则默认查询该目录及其子目录下所有文件')}`}
+                    />
+                  </div>
+                  <FilesInput
+                    strategies={availableStrategies.value}
+                    value={fileOrPath.value}
+                    {...{
+                      on: {
+                        'update:value': (val: string) => (fileOrPath.value = val),
+                        'update:select': handleFilesSelect,
+                      },
+                    }}
+                  />
+                </div>
                 <PreviewFiles
                   ref={previewRef}
                   downloadFiles={downloadFiles.value}
@@ -581,43 +623,42 @@ export default defineComponent({
                 style={{ display: fileSourceTab.value === 'manual' ? '' : 'none' }}
                 class='selector-panel'
               >
-                <div class='manual-tips'>
-                  <i class='bklog-icon bklog-info-fill' />
-                  <span>
-                    {isManualDisabled.value
-                      ? t('请先选择文件来源主机，再手动输入日志文件路径')
-                      : t('支持手动输入完整的日志文件路径，添加后进入右侧已选列表')}
-                  </span>
+                {renderScopeTips(false)}
+                <div class='form-item'>
+                  <div class='form-label'>
+                    {t('日志文件路径')}
+                    <span class='required'>*</span>
+                  </div>
+                  <div class='manual-operate'>
+                    <bk-input
+                      class={manualPathError.value ? 'is-error' : ''}
+                      disabled={isManualDisabled.value}
+                      placeholder={t('请输入完整的日志文件路径，如 /data/logs/app.log')}
+                      value={manualPath.value}
+                      {...{
+                        on: {
+                          change: handleManualPathInput,
+                          enter: handleAddManualPath,
+                        },
+                      }}
+                    />
+                    <bk-button
+                      disabled={isManualDisabled.value || !manualPath.value.trim()}
+                      theme='primary'
+                      onClick={handleAddManualPath}
+                    >
+                      {t('添加')}
+                    </bk-button>
+                  </div>
+                  {!!manualPathError.value && <div class='manual-error'>{manualPathError.value}</div>}
                 </div>
-                <div class='manual-operate'>
-                  <bk-input
-                    class={manualPathError.value ? 'is-error' : ''}
-                    disabled={isManualDisabled.value}
-                    placeholder={t('请输入完整的日志文件路径，如 /data/logs/app.log')}
-                    value={manualPath.value}
-                    {...{
-                      on: {
-                        change: handleManualPathInput,
-                        enter: handleAddManualPath,
-                      },
-                    }}
-                  />
-                  <bk-button
-                    disabled={isManualDisabled.value || !manualPath.value.trim()}
-                    theme='primary'
-                    onClick={handleAddManualPath}
-                  >
-                    {t('添加到已选列表')}
-                  </bk-button>
-                </div>
-                {!!manualPathError.value && <div class='manual-error'>{manualPathError.value}</div>}
               </div>
             </div>
 
             <div class='selected-panel'>
               <div class='selected-head'>
                 <span class='selected-title'>
-                  {t('已选列表')}
+                  {t('已选预览')}
                   <span class='selected-count'>
                     ({downloadFiles.value.length}/{MAX_SELECTED_FILES})
                   </span>
@@ -629,6 +670,12 @@ export default defineComponent({
                   {t('清空')}
                 </span>
               </div>
+              {!!downloadFiles.value.length && (
+                <div class='selected-summary'>
+                  <i class='bklog-icon bklog-info-fill' />
+                  <span>{t('将从所有已选主机提取以下 {0} 个文件', { 0: downloadFiles.value.length })}</span>
+                </div>
+              )}
               <div class='selected-body'>
                 {downloadFiles.value.length ? (
                   downloadFiles.value.map((path: string) => (

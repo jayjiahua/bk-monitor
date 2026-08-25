@@ -10,12 +10,6 @@
     display: flex;
     align-items: center;
 
-    .panel-label {
-      flex: none;
-      margin-right: 8px;
-      font-size: 12px;
-    }
-
     .download-url-text {
       color: #3a84ff;
       cursor: pointer;
@@ -55,7 +49,33 @@
 .log-file-selector .preview-file-content {
   width: 100%;
   max-width: none;
-  margin-top: 16px;
+
+  /* 预览地址与文件日期两列平分，检索操作贴在右侧并与输入框底边对齐 */
+  .preview-form {
+    display: flex;
+    align-items: flex-end;
+
+    .form-item {
+      flex: 1;
+      min-width: 0;
+      margin-right: 16px;
+    }
+
+    .form-operate {
+      display: flex;
+      flex: none;
+      align-items: center;
+      margin-bottom: 16px;
+
+      .bk-form-checkbox {
+        margin-right: 16px;
+      }
+    }
+  }
+
+  .preview-table-head {
+    margin-top: 0;
+  }
 }
 
 .preview-scroll-table {

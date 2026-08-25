@@ -58,12 +58,18 @@
     }
   }
 
+  /**
+   * 这里不能复用 .row-container .content，它的 flex-flow: column 是三个 class 的
+   * (0,3,0) 优先级，会压过本规则的 (0,2,0)，把左右两栏压成上下堆叠。
+   * 因此该节点只挂 log-file-selector，自行补齐 content 提供的字号与撑满行为。
+   */
   .log-file-selector {
     display: flex;
+    flex: 1;
     flex-flow: row;
     align-items: stretch;
-    width: calc(100% - 144px);
-    min-width: 900px;
+    min-width: 0;
+    font-size: 12px;
 
     .selector-main {
       display: flex;
@@ -75,25 +81,40 @@
       border-radius: 2px;
     }
 
+    .selector-title {
+      flex: none;
+      padding: 14px 16px 0;
+      font-size: 14px;
+      font-weight: 700;
+      color: #313238;
+    }
+
     .selector-tab {
       display: flex;
       flex: none;
-      border-bottom: 1px solid #dcdee5;
+      padding: 12px 16px 0;
 
       .tab-item {
         display: flex;
         flex: 1;
         align-items: center;
         justify-content: center;
-        height: 40px;
+        height: 44px;
         color: #63656e;
         cursor: pointer;
         background: #fafbfd;
-        border-bottom: 2px solid transparent;
 
-        .bk-icon {
-          margin-right: 6px;
-          font-size: 14px;
+        /* 未选中态不显边框，但保留边框盒撑住高度，避免切换页签时抖动 */
+        border: 1px solid transparent;
+        border-radius: 2px;
+
+        & + .tab-item {
+          margin-left: 12px;
+        }
+
+        .tab-icon {
+          margin-right: 8px;
+          font-size: 16px;
         }
 
         &:hover {
@@ -103,52 +124,98 @@
         &.is-active {
           color: #3a84ff;
           background: #fff;
-          border-bottom-color: #3a84ff;
+          border-color: #3a84ff;
         }
       }
     }
 
     .selector-panel {
       flex: 1;
+      min-width: 0;
       padding: 16px;
+    }
 
-      .manual-tips {
-        display: flex;
-        align-items: center;
-        padding: 8px 12px;
-        margin-bottom: 12px;
-        color: #63656e;
-        background: #f0f8ff;
-        border: 1px solid #c5daff;
-        border-radius: 2px;
+    .panel-tips {
+      display: flex;
+      padding: 8px 12px;
+      margin-bottom: 16px;
+      line-height: 20px;
+      background: #f0f8ff;
+      border: 1px solid #c5daff;
+      border-radius: 2px;
 
-        .bklog-info-fill {
-          margin-right: 6px;
-          color: #3a84ff;
+      .bklog-info-fill {
+        flex: none;
+        margin-top: 2px;
+        margin-right: 8px;
+        color: #3a84ff;
+      }
+
+      .tips-content {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .tips-scope {
+        color: #3a84ff;
+      }
+    }
+
+    .form-item {
+      margin-bottom: 16px;
+
+      .form-label {
+        margin-bottom: 6px;
+
+        .required {
+          margin-left: 3px;
+          color: #ea3636;
+        }
+
+        .label-tips {
+          margin-left: 4px;
+          color: #979ba5;
+          cursor: pointer;
         }
       }
 
-      .manual-operate {
-        display: flex;
-        align-items: center;
+      /**
+       * 目录输入框由 bk-popover 包裹，bk-tooltip 与 bk-tooltip-ref 都是 inline-block，
+       * 必须逐层改为撑满，否则输入框会塌成内容宽度而不跟随两栏布局伸缩。
+       */
+      .bk-select-dropdown,
+      .bk-tooltip-ref,
+      .files-input-wrap,
+      .bk-select,
+      .bk-date-picker {
+        display: block;
+        width: 100%;
 
-        .bk-form-control {
-          flex: 1;
-          margin-right: 12px;
-        }
+        /* 清掉控件在旧横排布局里自带的右间距，堆叠布局的间距由 form-item 统一给 */
+        margin-right: 0;
       }
+    }
 
-      .manual-error {
-        margin-top: 6px;
-        color: #ea3636;
+    .manual-operate {
+      display: flex;
+      align-items: center;
+
+      .bk-form-control {
+        flex: 1;
+        margin-right: 12px;
       }
+    }
+
+    .manual-error {
+      margin-top: 6px;
+      color: #ea3636;
     }
 
     .selected-panel {
       display: flex;
       flex: none;
       flex-flow: column;
-      width: 280px;
+      width: 300px;
       margin-left: 16px;
       background: #fff;
       border: 1px solid #dcdee5;
@@ -159,12 +226,17 @@
         flex: none;
         align-items: center;
         justify-content: space-between;
-        height: 40px;
-        padding: 0 12px;
-        border-bottom: 1px solid #dcdee5;
+        padding: 14px 16px 12px;
+
+        .selected-title {
+          font-size: 14px;
+          font-weight: 700;
+          color: #313238;
+        }
 
         .selected-count {
           margin-left: 4px;
+          font-weight: 400;
           color: #979ba5;
         }
 
@@ -179,21 +251,45 @@
         }
       }
 
+      .selected-summary {
+        display: flex;
+        flex: none;
+        padding: 8px 12px;
+        margin: 0 16px 12px;
+        line-height: 20px;
+        background: #f0f8ff;
+        border: 1px solid #c5daff;
+        border-radius: 2px;
+
+        .bklog-info-fill {
+          flex: none;
+          margin-top: 2px;
+          margin-right: 8px;
+          color: #3a84ff;
+        }
+      }
+
       .selected-body {
         flex: 1;
-        max-height: 420px;
-        padding: 4px 0;
+        max-height: 480px;
+        padding: 0 16px 16px;
         overflow-y: auto;
 
         .selected-item {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          height: 32px;
-          padding: 0 12px;
+          min-height: 32px;
+          padding: 0 8px 0 12px;
+          border: 1px solid #dcdee5;
+          border-radius: 2px;
+
+          & + .selected-item {
+            margin-top: 8px;
+          }
 
           &:hover {
-            background: #f5f7fa;
+            border-color: #3a84ff;
           }
 
           .item-path {

@@ -1431,14 +1431,22 @@ export default {
     'No collection items under this business. Please follow the guide to onboard, or contact the administrator to apply',
   'API无权限，请联系管理员申请': 'No API permission. Please contact the administrator to apply',
   '无权限，请联系管理员': 'No permission. Please contact the administrator',
+  选择文件: 'Select files',
   选择日志文件: 'Select log files',
   从主机检索: 'Search from hosts',
   手动输入路径: 'Enter path manually',
-  已选列表: 'Selected',
+  已选预览: 'Selected preview',
   暂无已选文件: 'No file selected',
-  添加到已选列表: 'Add to selected',
-  '支持手动输入完整的日志文件路径，添加后进入右侧已选列表':
-    'Enter a full log file path; it will be added to the selected list on the right',
+  添加: 'Add',
+  目录或文件名: 'Directory or file name',
+  日志文件路径: 'Log file path',
+  允许提取范围: 'Extractable scope',
+  全部类型: 'all types',
+  '将从所有已选主机提取以下 {0} 个文件': 'The following {0} file(s) will be extracted from all selected hosts',
+  '预览地址仅作为快速检索的样本，选出的路径最终会从所有已选主机提取':
+    'The preview address is only a sample for quick search; selected paths are extracted from all selected hosts',
+  '需输入完整的日志文件路径，添加后进入右侧已选预览':
+    'Enter a full log file path; it will be added to the selected preview on the right',
   '请输入完整的日志文件路径，如 /data/logs/app.log': 'Enter a full log file path, e.g. /data/logs/app.log',
   '已选列表最多支持{0}个文件': 'Up to {0} files can be selected',
   该路径已在已选列表中: 'This path is already selected',
@@ -1450,6 +1458,5 @@ export default {
   路径包含不支持的字符: 'The path contains unsupported characters',
   路径不在可提取的目录范围内: 'The path is outside the extractable directories',
   请先选择文件来源主机: 'Please select the source hosts first',
-  '请先选择文件来源主机，再手动输入日志文件路径': 'Select the source hosts before entering a log file path',
   '仅支持提取以下类型的文件：{0}': 'Only the following file types can be extracted: {0}',
 };
