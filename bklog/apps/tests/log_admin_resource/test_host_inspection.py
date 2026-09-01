@@ -1,5 +1,6 @@
 import base64
 import json
+import stat
 import tempfile
 from pathlib import Path
 from types import SimpleNamespace
@@ -896,6 +897,14 @@ bkunifylogbeat.multi_config:
             self.assertFalse(
                 remote_script.source_is_allowed(str(Path(directory) / "outside.log"), [str(allowed / "*.log")])
             )
+
+    def test_file_mode_falls_back_when_python_runtime_has_no_stat_filemode(self):
+        mode = stat.S_IFREG | stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP
+
+        with patch.object(remote_script.stat, "filemode", None):
+            result = remote_script.file_mode(mode)
+
+        self.assertEqual(result, "-rw-r-----")
 
     def test_source_sample_follows_symlink_matched_by_target_config(self):
         with tempfile.TemporaryDirectory() as directory:

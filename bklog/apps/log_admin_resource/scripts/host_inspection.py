@@ -48,6 +48,27 @@ DEFAULT_DURATIONS = {
     "multiline_timeout": 5.0,
 }
 
+FILE_MODE_TABLE = (
+    (
+        (stat.S_IFLNK, "l"),
+        (stat.S_IFSOCK, "s"),
+        (stat.S_IFREG, "-"),
+        (stat.S_IFBLK, "b"),
+        (stat.S_IFDIR, "d"),
+        (stat.S_IFCHR, "c"),
+        (stat.S_IFIFO, "p"),
+    ),
+    ((stat.S_IRUSR, "r"),),
+    ((stat.S_IWUSR, "w"),),
+    ((stat.S_IXUSR | stat.S_ISUID, "s"), (stat.S_ISUID, "S"), (stat.S_IXUSR, "x")),
+    ((stat.S_IRGRP, "r"),),
+    ((stat.S_IWGRP, "w"),),
+    ((stat.S_IXGRP | stat.S_ISGID, "s"), (stat.S_ISGID, "S"), (stat.S_IXGRP, "x")),
+    ((stat.S_IROTH, "r"),),
+    ((stat.S_IWOTH, "w"),),
+    ((stat.S_IXOTH | stat.S_ISVTX, "t"), (stat.S_ISVTX, "T"), (stat.S_IXOTH, "x")),
+)
+
 
 def utcnow():
     return datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
@@ -90,6 +111,22 @@ def decode_text(value):
 
 def sha256_bytes(value):
     return hashlib.sha256(value).hexdigest()
+
+
+def file_mode(mode):
+    """Return stat.filemode output on Python 2.7 and Python 3 runtimes."""
+    native = getattr(stat, "filemode", None)
+    if native:
+        return native(mode)
+    result = []
+    for table in FILE_MODE_TABLE:
+        for bit, char in table:
+            if mode & bit == bit:
+                result.append(char)
+                break
+        else:
+            result.append("-")
+    return "".join(result)
 
 
 def scalar(value):
@@ -709,7 +746,7 @@ def _source_stat(path):
             "mtime": file_stat.st_mtime,
             "inode": file_stat.st_ino,
             "device": file_stat.st_dev,
-            "mode": stat.filemode(file_stat.st_mode),
+            "mode": file_mode(file_stat.st_mode),
         }
     )
     return value
